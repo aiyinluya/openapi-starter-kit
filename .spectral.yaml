@@ -1,0 +1,14 @@
+extends: ["spectral:oas", "spectral:documentation"]
+
+rules:
+  # 强制要求 operationId
+  operation-operationId: error
+  
+  # 强制要求操作描述
+  operation-description: warn
+  
+  # 强制要求 tag
+  operation-tags: warn
+  
+  # 强制要求 summary
+  operation-summary: error

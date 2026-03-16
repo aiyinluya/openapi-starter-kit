@@ -1,0 +1,735 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pet Store API",
+    "description": "宠物商店 API - OpenAPI 3.0 完整示例\n\n这是一个教学用的示例 API，展示了 OpenAPI 3.0 的主要特性：\n- 路径定义与操作\n- 请求/响应模型\n- 认证机制\n- 错误处理\n\n**功能特性：**\n- 宠物管理（CRUD）\n- 订单系统\n- 用户管理\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@petstore.example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.petstore.example.com/v1",
+      "description": "生产环境"
+    },
+    {
+      "url": "https://staging-api.petstore.example.com/v1",
+      "description": "测试环境"
+    },
+    {
+      "url": "http://localhost:3000/v1",
+      "description": "本地开发"
+    }
+  ],
+  "tags": [
+    {
+      "name": "pets",
+      "description": "宠物相关操作"
+    },
+    {
+      "name": "orders",
+      "description": "订单管理"
+    },
+    {
+      "name": "users",
+      "description": "用户管理"
+    }
+  ],
+  "paths": {
+    "/pets": {
+      "get": {
+        "summary": "获取宠物列表",
+        "description": "返回宠物列表，支持按状态筛选",
+        "operationId": "listPets",
+        "tags": ["pets"],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "按状态筛选宠物",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["available", "pending", "sold"],
+              "default": "available"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回的最大数量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回宠物列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pet"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "summary": "创建宠物",
+        "description": "添加新宠物到商店",
+        "operationId": "createPet",
+        "tags": ["pets"],
+        "security": [{"apiKey": []}],
+        "requestBody": {
+          "description": "宠物信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "宠物创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/pets/{petId}": {
+      "parameters": [
+        {
+          "name": "petId",
+          "in": "path",
+          "description": "宠物 ID",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          }
+        }
+      ],
+      "get": {
+        "summary": "获取单个宠物",
+        "description": "根据 ID 获取宠物详情",
+        "operationId": "getPetById",
+        "tags": ["pets"],
+        "responses": {
+          "200": {
+            "description": "成功返回宠物信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "put": {
+        "summary": "更新宠物信息",
+        "description": "更新指定宠物的信息",
+        "operationId": "updatePet",
+        "tags": ["pets"],
+        "security": [{"apiKey": []}],
+        "requestBody": {
+          "description": "更新的宠物信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除宠物",
+        "description": "从商店删除指定宠物",
+        "operationId": "deletePet",
+        "tags": ["pets"],
+        "security": [{"apiKey": []}],
+        "responses": {
+          "204": {
+            "description": "删除成功"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "post": {
+        "summary": "创建订单",
+        "description": "为宠物下单",
+        "operationId": "createOrder",
+        "tags": ["orders"],
+        "security": [{"apiKey": []}],
+        "requestBody": {
+          "description": "订单信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "订单创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "parameters": [
+        {
+          "name": "orderId",
+          "in": "path",
+          "description": "订单 ID",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      ],
+      "get": {
+        "summary": "获取订单",
+        "description": "根据 ID 获取订单详情",
+        "operationId": "getOrderById",
+        "tags": ["orders"],
+        "security": [{"apiKey": []}],
+        "responses": {
+          "200": {
+            "description": "成功返回订单信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除订单",
+        "description": "取消订单",
+        "operationId": "deleteOrder",
+        "tags": ["orders"],
+        "security": [{"apiKey": []}],
+        "responses": {
+          "204": {
+            "description": "删除成功"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "summary": "创建用户",
+        "description": "用户注册",
+        "operationId": "createUser",
+        "tags": ["users"],
+        "requestBody": {
+          "description": "用户信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "用户创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/users/{username}": {
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "description": "用户名",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 20,
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          }
+        }
+      ],
+      "get": {
+        "summary": "获取用户信息",
+        "description": "根据用户名获取用户信息",
+        "operationId": "getUserByName",
+        "tags": ["users"],
+        "security": [{"apiKey": []}],
+        "responses": {
+          "200": {
+            "description": "成功返回用户信息",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "put": {
+        "summary": "更新用户信息",
+        "description": "更新指定用户的信息",
+        "operationId": "updateUser",
+        "tags": ["users"],
+        "security": [{"apiKey": []}],
+        "requestBody": {
+          "description": "更新的用户信息",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["id", "name", "photoUrls"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true,
+            "description": "宠物唯一标识"
+          },
+          "name": {
+            "type": "string",
+            "description": "宠物名称",
+            "example": "小白"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "photoUrls": {
+            "type": "array",
+            "description": "宠物照片 URL 列表",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "标签列表",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "status": {
+            "type": "string",
+            "description": "宠物状态",
+            "enum": ["available", "pending", "sold"],
+            "default": "available"
+          }
+        }
+      },
+      "PetInput": {
+        "type": "object",
+        "required": ["name", "photoUrls"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "宠物名称",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "photoUrls": {
+            "type": "array",
+            "description": "宠物照片 URL 列表",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "pending", "sold"],
+            "default": "available"
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "description": "分类名称",
+            "example": "猫"
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "description": "标签名称",
+            "example": "可爱"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["petId", "quantity"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true,
+            "description": "订单唯一标识"
+          },
+          "petId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "宠物 ID"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "数量",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "shipDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "预计发货时间"
+          },
+          "status": {
+            "type": "string",
+            "description": "订单状态",
+            "enum": ["placed", "approved", "delivered"],
+            "default": "placed"
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "是否完成",
+            "default": false
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": ["username", "email"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true,
+            "description": "用户唯一标识"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "minLength": 3,
+            "maxLength": 20,
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "名"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "姓"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "邮箱地址"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "密码（创建时必需，返回时隐藏）",
+            "minLength": 6,
+            "writeOnly": true
+          },
+          "phone": {
+            "type": "string",
+            "description": "电话"
+          },
+          "userStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "用户状态（0-禁用，1-启用）",
+            "enum": [0, 1],
+            "default": 1
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "错误码"
+          },
+          "message": {
+            "type": "string",
+            "description": "错误信息"
+          },
+          "details": {
+            "type": "string",
+            "description": "详细错误信息"
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "请求参数错误",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "未授权，需要 API Key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "资源不存在",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "服务器内部错误",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API Key 认证，在请求头中携带 X-API-Key"
+      }
+    }
+  }
+}

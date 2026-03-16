@@ -1,0 +1,32 @@
+{
+  "name": "openapi-starter-kit",
+  "version": "1.0.0",
+  "description": "OpenAPI 3.0 入门教程项目 - 从零开始学习 API 规范设计",
+  "main": "index.js",
+  "scripts": {
+    "validate": "node scripts/validate.js openapi.yaml",
+    "validate:all": "node scripts/validate.js openapi.yaml && for f in examples/*.yaml; do node scripts/validate.js $f; done",
+    "convert": "node scripts/convert.js openapi.yaml openapi.json",
+    "generate": "node scripts/generate.js",
+    "generate:ts": "node scripts/generate.js ts",
+    "generate:py": "node scripts/generate.js py",
+    "generate:java": "node scripts/generate.js java",
+    "mock": "npx @stoplight/prism-cli mock openapi.yaml",
+    "mock:verbose": "npx @stoplight/prism-cli mock openapi.yaml --verbose",
+    "lint": "npx @stoplight/spectral-cli lint openapi.yaml",
+    "preview": "echo 'Open https://editor.swagger.io/ and paste openapi.yaml content'"
+  },
+  "keywords": [
+    "openapi",
+    "swagger",
+    "api",
+    "tutorial",
+    "rest",
+    "specification"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "yaml": "^2.3.0"
+  }
+}

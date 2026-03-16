@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Authentication Demo
+  version: 1.0.0
+  description: 演示各种认证方式
+
+# 全局安全设置
+security:
+  - apiKey: []
+
+paths:
+  # 公开端点 - 覆盖全局设置
+  /login:
+    post:
+      summary: 用户登录
+      security: []  # 空数组表示不需要认证
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  # 需要 API Key
+  /pets:
+    get:
+      summary: 获取宠物列表
+      responses:
+        '200':
+          description: 成功
+
+  # 需要 OAuth2
+  /admin/pets:
+    post:
+      summary: 管理员创建宠物
+      security:
+        - oauth2:
+            - write:pets
+            - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+        '403':
+          description: 权限不足
+
+  # 需要 JWT Bearer
+  /user/profile:
+    get:
+      summary: 获取当前用户信息
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+components:
+  securitySchemes:
+    # API Key 认证
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        在请求头中携带 API Key：
+        ```
+        X-API-Key: your-api-key-here
+        ```
+
+    # HTTP Basic 认证
+    basicAuth:
+      type: http
+      scheme: basic
+      description: 用户名和密码的 Base64 编码
+
+    # Bearer Token (JWT)
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT Token 认证：
+        ```
+        Authorization: Bearer <your-jwt-token>
+        ```
+
+    # OAuth2 认证
+    oauth2:
+      type: oauth2
+      description: OAuth2 认证
+      flows:
+        # 授权码模式（推荐）
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth/authorize
+          tokenUrl: https://example.com/oauth/token
+          refreshUrl: https://example.com/oauth/refresh
+          scopes:
+            read:pets: 读取宠物信息
+            write:pets: 创建和修改宠物
+            read:orders: 读取订单
+            write:orders: 创建订单
+            admin: 管理员权限
+
+        # 简化模式（Implicit）
+        implicit:
+          authorizationUrl: https://example.com/oauth/authorize
+          scopes:
+            read:pets: 读取宠物信息
+
+        # 密码模式（不推荐用于生产环境）
+        password:
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read:pets: 读取宠物信息
+            write:pets: 创建和修改宠物
+
+        # 客户端凭证模式
+        clientCredentials:
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read:pets: 读取宠物信息
+
+    # OpenID Connect
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration

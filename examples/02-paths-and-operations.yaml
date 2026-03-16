@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Paths and Operations Demo
+  version: 1.0.0
+  description: 演示路径定义和各种 HTTP 操作
+
+paths:
+  # 基础 CRUD
+  /pets:
+    get:
+      summary: 获取宠物列表
+      operationId: listPets
+      parameters:
+        - name: limit
+          in: query
+          description: 返回数量限制
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 宠物列表
+
+    post:
+      summary: 创建宠物
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+
+  # 路径参数
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        description: 宠物 ID
+        schema:
+          type: integer
+
+    get:
+      summary: 获取单个宠物
+      operationId: getPetById
+      responses:
+        '200':
+          description: 宠物详情
+        '404':
+          description: 宠物不存在
+
+    put:
+      summary: 更新宠物
+      operationId: updatePet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      summary: 删除宠物
+      operationId: deletePet
+      responses:
+        '204':
+          description: 删除成功
+
+  # 查询参数示例
+  /pets/search:
+    get:
+      summary: 搜索宠物
+      parameters:
+        - name: name
+          in: query
+          description: 按名称搜索
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 按状态筛选
+          schema:
+            type: string
+            enum: [available, pending, sold]
+        - name: minPrice
+          in: query
+          description: 最低价格
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          description: 最高价格
+          schema:
+            type: number
+      responses:
+        '200':
+          description: 搜索结果

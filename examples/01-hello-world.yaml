@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Hello World API
+  version: 1.0.0
+  description: 最简单的 OpenAPI 示例
+
+paths:
+  /hello:
+    get:
+      summary: 打招呼
+      description: 返回一个简单的问候消息
+      responses:
+        '200':
+          description: 成功返回问候
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Hello, World!

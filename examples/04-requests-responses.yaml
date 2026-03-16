@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: Requests and Responses Demo
+  version: 1.0.0
+  description: 演示请求体和响应定义
+
+paths:
+  /pets:
+    post:
+      summary: 创建宠物
+      requestBody:
+        description: 宠物信息
+        required: true
+        content:
+          # JSON 格式
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+            examples:
+              cat:
+                summary: 猫咪示例
+                value:
+                  name: 咪咪
+                  category: 猫
+                  age: 12
+              dog:
+                summary: 狗狗示例
+                value:
+                  name: 旺财
+                  category: 狗
+                  age: 24
+          # Form 格式
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+          # 文件上传
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      summary: 获取宠物
+      responses:
+        '200':
+          description: 成功
+          headers:
+            X-Rate-Limit:
+              description: 剩余请求次数
+              schema:
+                type: integer
+            X-Request-ID:
+              description: 请求唯一标识
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '404':
+          description: 未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: 更新宠物
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+      responses:
+        '200':
+          description: 更新成功
+        '400':
+          description: 参数错误
+        '404':
+          description: 未找到
+
+    delete:
+      summary: 删除宠物
+      responses:
+        '204':
+          description: 删除成功（无内容返回）
+        '404':
+          description: 未找到
+
+components:
+  schemas:
+    PetInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        category:
+          type: string
+          enum: [猫, 狗, 鸟, 鱼, 其他]
+        age:
+          type: integer
+          minimum: 0
+
+    Pet:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        age:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
