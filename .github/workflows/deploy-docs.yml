@@ -31,6 +31,14 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install marked
+        run: npm install -g marked
+
       - name: Build Documentation Site
         run: |
           mkdir -p _site
@@ -385,8 +393,6 @@ jobs:
           EOF
           
           # 转换 Markdown 为 HTML
-          npm install -g marked
-          
           for file in docs/*.md; do
             filename=$(basename "$file" .md)
             echo "Converting $file to $filename.html"
