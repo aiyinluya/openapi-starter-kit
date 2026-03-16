@@ -2,6 +2,12 @@
 
 一个面向初学者的 OpenAPI 3.0 完整入门教程项目。通过实际案例学习如何设计、编写和使用 API 规范。
 
+## 🌐 在线预览
+
+**Swagger UI 在线文档**: https://aiyinluya.github.io/openapi-starter-kit/
+
+无需安装任何工具，直接在浏览器中查看和测试 API。
+
 ## 📚 项目简介
 
 本项目通过构建一个**宠物商店 API** 的完整案例，带你从零掌握 OpenAPI 规范：

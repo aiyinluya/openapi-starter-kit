@@ -1,0 +1,54 @@
+name: Validate OpenAPI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi.json'
+      - 'examples/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi.json'
+      - 'examples/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate OpenAPI Specification
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install tools
+        run: |
+          npm install -g swagger-cli
+          npm install -g @stoplight/spectral-cli
+
+      - name: Validate main spec
+        run: |
+          echo "🔍 Validating openapi.yaml..."
+          swagger-cli validate openapi.yaml
+          echo "✅ openapi.yaml is valid"
+
+      - name: Lint with Spectral
+        run: |
+          echo "🔍 Linting with Spectral..."
+          spectral lint openapi.yaml --ruleset .spectral.yaml || true
+          echo "✅ Spectral lint complete"
+
+      - name: Validate examples
+        run: |
+          echo "🔍 Validating example files..."
+          for f in examples/*.yaml; do
+            echo "  Checking $f..."
+            swagger-cli validate "$f" && echo "  ✅ $f" || echo "  ⚠️  $f has issues"
+          done

@@ -1,0 +1,124 @@
+name: Deploy Swagger UI to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'openapi.yaml'
+      - 'openapi.json'
+  pull_request:
+    branches: [ main ]
+  # 允许手动触发
+  workflow_dispatch:
+
+# 设置 GITHUB_TOKEN 权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 并发控制
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 验证 OpenAPI 规范
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Swagger CLI
+        run: npm install -g swagger-cli
+
+      - name: Validate OpenAPI
+        run: swagger-cli validate openapi.yaml
+
+  # 构建并部署
+  build-and-deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Create Swagger UI Page
+        run: |
+          mkdir -p _site
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Pet Store API - Swagger UI</title>
+            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui.css" />
+            <style>
+              html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+              *, *:before, *:after { box-sizing: inherit; }
+              body { margin: 0; background: #fafafa; }
+              .topbar { display: none; }
+            </style>
+          </head>
+          <body>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-bundle.js"></script>
+            <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-standalone-preset.js"></script>
+            <script>
+              window.onload = function() {
+                window.ui = SwaggerUIBundle({
+                  url: 'openapi.yaml',
+                  dom_id: '#swagger-ui',
+                  deepLinking: true,
+                  presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                  ],
+                  plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                  ],
+                  layout: "StandaloneLayout",
+                  validatorUrl: null,
+                  tryItOutEnabled: true,
+                  supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                  onComplete: function() {
+                    console.log('Swagger UI loaded successfully');
+                  }
+                });
+              };
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Copy OpenAPI Files
+        run: |
+          cp openapi.yaml _site/
+          cp openapi.json _site/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+  # 部署到 GitHub Pages
+  deploy:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
